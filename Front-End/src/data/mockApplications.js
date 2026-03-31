@@ -1,0 +1,16 @@
+export const mockApplications = [
+  { id: 1, studentId: 1, companyId: 1, companyName: 'TCS', role: 'Software Developer', appliedDate: '2026-02-10', status: 'selected', round: 'HR Interview' },
+  { id: 2, studentId: 1, companyId: 4, companyName: 'Wipro', role: 'Project Engineer', appliedDate: '2026-02-15', status: 'applied', round: 'Aptitude' },
+  { id: 3, studentId: 1, companyId: 9, companyName: 'Capgemini', role: 'Analyst', appliedDate: '2026-03-01', status: 'shortlisted', round: 'Technical' },
+  { id: 4, studentId: 2, companyId: 2, companyName: 'Infosys', role: 'Systems Engineer', appliedDate: '2026-02-12', status: 'selected', round: 'HR Round' },
+  { id: 5, studentId: 3, companyId: 5, companyName: 'L&T', role: 'GET', appliedDate: '2026-03-02', status: 'applied', round: 'Written Test' },
+  { id: 6, studentId: 4, companyId: 2, companyName: 'Infosys', role: 'Systems Engineer', appliedDate: '2026-02-14', status: 'shortlisted', round: 'Technical Round' },
+  { id: 7, studentId: 5, companyId: 4, companyName: 'Wipro', role: 'Project Engineer', appliedDate: '2026-02-20', status: 'rejected', round: 'Aptitude' },
+  { id: 8, studentId: 6, companyId: 5, companyName: 'L&T', role: 'GET', appliedDate: '2026-02-25', status: 'selected', round: 'HR' },
+  { id: 9, studentId: 7, companyId: 3, companyName: 'Microsoft', role: 'SDE Intern', appliedDate: '2026-01-20', status: 'selected', round: 'HR Interview' },
+  { id: 10, studentId: 8, companyId: 7, companyName: 'CTS', role: 'Programmer Analyst', appliedDate: '2026-03-05', status: 'applied', round: 'Aptitude' },
+  { id: 11, studentId: 9, companyId: 10, companyName: 'Tata Motors', role: 'Design Engineer', appliedDate: '2026-03-06', status: 'shortlisted', round: 'Technical' },
+  { id: 12, studentId: 10, companyId: 4, companyName: 'Wipro', role: 'Project Engineer', appliedDate: '2026-02-18', status: 'selected', round: 'HR' },
+  { id: 13, studentId: 12, companyId: 1, companyName: 'TCS', role: 'Software Developer', appliedDate: '2026-02-22', status: 'shortlisted', round: 'Technical Interview' },
+  { id: 14, studentId: 14, companyId: 6, companyName: 'Google', role: 'Software Engineer', appliedDate: '2026-01-15', status: 'selected', round: 'Onsite' },
+];
