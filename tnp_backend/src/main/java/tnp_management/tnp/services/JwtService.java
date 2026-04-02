@@ -29,7 +29,7 @@ public class JwtService {
                 .claim("email" , user.getEmail())
                 .claim("roles" , user.getRole().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000*60*60))
+                .expiration(new Date(System.currentTimeMillis() + 15*60*1000))
                 .signWith(getSecretKey())
                 .compact();
     }
@@ -40,7 +40,7 @@ public class JwtService {
                 .claim("email" , user.getEmail())
                 .claim("roles" ,user.getRole().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000L *60*60*24*30*6))
+                .expiration(new Date(System.currentTimeMillis() + 7*24*60*60* 1000))
                 .signWith(getSecretKey())
                 .compact();
     }

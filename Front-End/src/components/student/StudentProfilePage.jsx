@@ -25,7 +25,7 @@ export default function StudentProfilePage() {
     fetchProfile();
   }, []);
 
-  // ✅ FETCH PROFILE
+
   const fetchProfile = async () => {
     try {
       setLoading(true);

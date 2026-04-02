@@ -44,7 +44,7 @@ export default function StudentDrivesPage() {
         fetchDrives()
       } else {
         const data = await response.json()
-        alert(data.message || 'Failed to register')
+        alert(data.Error.message || 'Failed to register')
       }
     } catch (err) {
       alert('Error registering for drive')
@@ -66,8 +66,8 @@ export default function StudentDrivesPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#451a03] mb-2">Placement Drives</h1>
+        <div className="flex justify-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Placement Drives</h1>
         </div>
 
         {error && (

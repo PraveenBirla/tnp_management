@@ -3,7 +3,7 @@ import { GraduationCap, ArrowRight } from 'lucide-react'
 
 export const Hero = () => {
   return (
-    <section className="relative grid min-h-[85vh] place-items-center px-4 sm:px-6 py-16 bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] md:py-24 ">
+    <section className="relative grid min-h-screen place-items-center px-4 sm:px-6 py-16 bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] md:py-24 ">
 
       <div className="container mx-auto grid place-items-center text-center">
 

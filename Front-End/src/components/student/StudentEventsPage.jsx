@@ -15,7 +15,7 @@ export default function StudentEventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8080/api/student/events', {
+      const response = await fetch('http://localhost:8080/api/student/events/my-list', {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await response.json()
@@ -39,10 +39,10 @@ export default function StudentEventsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl  mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#451a03] mb-2">Upcoming Events</h1>
+        <div className="flex flex-col items-center justify-center text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Upcoming Events</h1>
           <p className="text-[#7c5e3c]">Don&apos;t miss important placement-related events</p>
         </div>
 

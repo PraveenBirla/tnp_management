@@ -82,7 +82,7 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-600 to-orange-500 p-6 text-white sticky top-0 flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Create New Drive</h2>
+          <h2 className="text-2xl font-bold">Create Drive</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all"
