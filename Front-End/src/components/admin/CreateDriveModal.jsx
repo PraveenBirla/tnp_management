@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-export default function CreateDriveModal({ onClose, onSuccess }) {
+export default function CreateDriveModal({ onClose, onSuccess, drive = null, isEdit = false }) {
   const [formData, setFormData] = useState({
     companyName: '',
     jobRole: '',
@@ -21,6 +21,24 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
   const token = localStorage.getItem('token');
   const branches = ['CS', 'BC', 'EC', 'ME', 'CE'];
   const years = [2025, 2026, 2027];
+
+  // Pre-fill form with drive data for edit mode
+  useEffect(() => {
+    if (drive && isEdit) {
+      setFormData({
+        companyName: drive.companyName || '',
+        jobRole: drive.jobRole || '',
+        packageLPA: drive.packageLPA?.toString() || '',
+        eligibleBranches: drive.eligibleBranches || [],
+        targetYear: drive.targetYear || [],
+        minCgpa: drive.minCgpa?.toString() || '',
+        maxBacklogs: drive.maxBacklogs?.toString() || '',
+        deadline: drive.deadline ? new Date(drive.deadline).toISOString().slice(0, 16) : '',
+        driveDate: drive.driveDate ? new Date(drive.driveDate).toISOString().slice(0, 16) : '',
+        description: drive.description || '',
+      });
+    }
+  }, [drive, isEdit]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -51,27 +69,44 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/admin/drive_post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          packageLPA: parseFloat(formData.packageLPA),
-          minCgpa: parseFloat(formData.minCgpa),
-          maxBacklogs: parseInt(formData.maxBacklogs),
-        }),
-      });
+      const payload = {
+        ...formData,
+        packageLPA: parseFloat(formData.packageLPA),
+        minCgpa: parseFloat(formData.minCgpa),
+        maxBacklogs: parseInt(formData.maxBacklogs),
+      };
+
+      let response;
+      if (isEdit && drive?.id) {
+        // Update drive
+        response = await fetch(`http://localhost:8080/api/admin/update_drive/${drive.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // Create new drive
+        response = await fetch('http://localhost:8080/api/admin/drive_post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!response.ok) {
-        throw new Error('Failed to create drive');
+        throw new Error('Failed to save drive');
       }
 
       onSuccess();
     } catch (err) {
-      setError(err.message || 'Failed to create drive');
+      setError(err.message || 'Failed to save drive');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -81,8 +116,14 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-600 to-orange-500 p-6 text-white sticky top-0 flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Create Drive</h2>
+        <div className={`p-6 text-white sticky top-0 flex justify-between items-center ${
+          isEdit
+            ? 'bg-gradient-to-r from-blue-600 to-indigo-500'
+            : 'bg-gradient-to-r from-amber-600 to-orange-500'
+        }`}>
+          <h2 className="text-2xl font-bold">
+            {isEdit ? 'Edit Drive' : 'Create Drive'}
+          </h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all"
@@ -101,7 +142,7 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Company Name *
               </label>
               <input
@@ -110,12 +151,12 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 value={formData.companyName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Job Role *
               </label>
               <input
@@ -124,12 +165,12 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 value={formData.jobRole}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Package (LPA) *
               </label>
               <input
@@ -139,12 +180,12 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 onChange={handleInputChange}
                 step="0.1"
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Min CGPA *
               </label>
               <input
@@ -154,12 +195,12 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 onChange={handleInputChange}
                 step="0.1"
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Max Backlogs *
               </label>
               <input
@@ -168,14 +209,14 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 value={formData.maxBacklogs}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
           </div>
 
           {/* Eligible Branches */}
           <div>
-            <label className="block text-sm font-semibold text-amber-900 mb-2">
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
               Eligible Branches *
             </label>
             <div className="flex flex-wrap gap-2">
@@ -186,8 +227,8 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                   onClick={() => handleBranchToggle(branch)}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                     formData.eligibleBranches.includes(branch)
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
                   {branch}
@@ -198,7 +239,7 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
 
           {/* Target Years */}
           <div>
-            <label className="block text-sm font-semibold text-amber-900 mb-2">
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
               Target Year *
             </label>
             <div className="flex flex-wrap gap-2">
@@ -209,8 +250,8 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                   onClick={() => handleYearToggle(year)}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                     formData.targetYear.includes(year)
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
                   {year}
@@ -221,7 +262,7 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Deadline *
               </label>
               <input
@@ -230,12 +271,12 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 value={formData.deadline}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">
                 Drive Date *
               </label>
               <input
@@ -244,13 +285,13 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
                 value={formData.driveDate}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-amber-900 mb-1">
+            <label className="block text-sm font-semibold text-gray-900 mb-1">
               Description
             </label>
             <textarea
@@ -258,7 +299,7 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
               value={formData.description}
               onChange={handleInputChange}
               rows="3"
-              className="w-full px-4 py-2 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600"
             />
           </div>
 
@@ -267,9 +308,13 @@ export default function CreateDriveModal({ onClose, onSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50"
+              className={`flex-1 px-6 py-3 text-white rounded-lg font-semibold transition-all disabled:opacity-50 ${
+                isEdit
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-amber-600 hover:bg-amber-700'
+              }`}
             >
-              {loading ? 'Creating...' : 'Create Drive'}
+              {loading ? 'Saving...' : (isEdit ? 'Update Drive' : 'Create Drive')}
             </button>
             <button
               type="button"

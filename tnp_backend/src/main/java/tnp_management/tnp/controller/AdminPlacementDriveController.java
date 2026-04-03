@@ -43,5 +43,13 @@ public class AdminPlacementDriveController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("update_drive/{id}")
+    public ResponseEntity<Void> update(@PathVariable Long id , @RequestBody PlacementDriveDTO
+                                       placementDriveDTO){
+        placementDriveService.updateDrive(id , placementDriveDTO);
+        return ResponseEntity.ok().build();
+
+    }
+
 
 }

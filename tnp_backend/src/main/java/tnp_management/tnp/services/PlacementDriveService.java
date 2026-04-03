@@ -79,4 +79,12 @@ public class PlacementDriveService {
         }
         placementDriveRepository.deleteById(id);
     }
+
+    public void updateDrive(Long id, PlacementDriveDTO placementDriveDTO) {
+
+        PlacementDrive drive = placementDriveRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("drive not found"));
+        modelMapper.map(placementDriveDTO  , drive);
+        placementDriveRepository.save(drive);
+    }
 }

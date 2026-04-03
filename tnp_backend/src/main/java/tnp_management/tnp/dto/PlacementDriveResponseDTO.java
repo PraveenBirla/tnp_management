@@ -27,5 +27,5 @@ public class PlacementDriveResponseDTO {
     private LocalDateTime deadline;
     private LocalDateTime driveDate;
     private String description;
-    private boolean isExpired;
+    private boolean  isExpired;
 }
