@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-
+import {fetchWithAuth} from "../../api/fetchWithAuth"
 export default function CreateDriveModal({ onClose, onSuccess, drive = null, isEdit = false }) {
   const [formData, setFormData] = useState({
     companyName: '',
@@ -79,21 +79,19 @@ export default function CreateDriveModal({ onClose, onSuccess, drive = null, isE
       let response;
       if (isEdit && drive?.id) {
         // Update drive
-        response = await fetch(`http://localhost:8080/api/admin/update_drive/${drive.id}`, {
+        response = await fetchWithAuth(`/admin/update_drive/${drive.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
       } else {
         // Create new drive
-        response = await fetch('http://localhost:8080/api/admin/drive_post', {
+        response = await fetchWithAuth('/admin/drive_post', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });

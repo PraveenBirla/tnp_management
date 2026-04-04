@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Loader } from 'lucide-react'
+import {fetchWithAuth} from '../../api/fetchWithAuth'
 
 export default function StudentDrivesPage() {
   const [drives, setDrives] = useState([])
@@ -16,7 +17,7 @@ export default function StudentDrivesPage() {
   const fetchDrives = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8080/api/drive/get_all', {
+      const response = await fetchWithAuth('/drive/get_all', {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await response.json()
@@ -34,9 +35,8 @@ export default function StudentDrivesPage() {
     setRegistering(prev => ({ ...prev, [driveId]: true }))
 
     try {
-      const response = await fetch(`http://localhost:8080/api/student/drive/apply/${driveId}`, {
+      const response = await fetchWithAuth(`/student/drive/apply/${driveId}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
       })
 
       if (response.ok) {
@@ -136,16 +136,21 @@ export default function StudentDrivesPage() {
 
                 {/* Register Button */}
                 <div className="border-t border-[#f1e6d3] p-4">
-                  <button
-                    onClick={() => handleRegister(drive.id)}
-                    disabled={registering[drive.id]}
-                    className="w-full py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition bg-[#d97706] hover:bg-[#b45309] text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {registering[drive.id] && (
-                      <Loader size={18} className="animate-spin" />
-                    )}
-                    {registering[drive.id] ? 'Registering...' : 'Register'}
-                  </button>
+                 <button
+                   onClick={() => handleRegister(drive.id)}
+                   disabled={registering[drive.id] || drive.registered} // disable if already applied
+                   className="w-full py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition bg-[#d97706] hover:bg-[#b45309] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                 >
+                   {registering[drive.id] && (
+                     <Loader size={18} className="animate-spin" />
+                   )}
+                   {registering[drive.id]
+                     ? "Registering..."
+                     : drive.registered
+                       ? "Applied"
+                       : "Register"}
+                 </button>
+
                 </div>
             </div>
           ))}

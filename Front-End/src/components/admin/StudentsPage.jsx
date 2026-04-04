@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit2, Plus, Search } from 'lucide-react';
-import AddStudentModal from './AddStudentModal';
+import { Trash2, Search } from 'lucide-react';
+import { fetchWithAuth } from '../../api/fetchWithAuth';
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -8,31 +10,45 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [branches, setBranches] = useState([]);
+  const [years, setYears] = useState([]);
 
-  const token = localStorage.getItem('token');
+
 
   useEffect(() => {
     fetchStudents();
   }, []);
 
   useEffect(() => {
-    const filtered = students.filter(
-      (student) =>
+    // Extract unique branches and years from students
+    const uniqueBranches = [...new Set(students.map(s => s.branch).filter(Boolean))];
+    const uniqueYears = [...new Set(students.map(s => s.batch).filter(Boolean))];
+
+    setBranches(uniqueBranches.sort());
+    setYears(uniqueYears.sort());
+  }, [students]);
+
+  useEffect(() => {
+    const filtered = students.filter((student) => {
+      const matchesSearch =
         student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNo?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        student.rollNo?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesBranch = selectedBranch === '' || student.branch === selectedBranch;
+      const matchesYear = selectedYear === '' || student.batch === selectedYear;
+
+      return matchesSearch && matchesBranch && matchesYear;
+    });
     setFilteredStudents(filtered);
-  }, [searchTerm, students]);
+  }, [searchTerm, students, selectedBranch, selectedYear]);
 
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/admin/all_students', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth('/admin/all_students');
       const data = await response.json();
       setStudents(data.data || []);
       setError(null);
@@ -48,25 +64,12 @@ export default function StudentsPage() {
     if (!window.confirm('Are you sure you want to delete this student profile?'))
       return;
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/admin/students/${studentId}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (response.ok) {
-        setStudents(students.filter((s) => s.id !== studentId));
-      }
+      await fetchWithAuth(`admin/students/${studentId}`, { method: 'DELETE' });
+      setStudents(students.filter((s) => s.id !== studentId));
     } catch (err) {
+      setError('Failed to delete student');
       console.error('Failed to delete student:', err);
     }
-  };
-
-  const handleStudentCreated = () => {
-    fetchStudents();
-    setShowAddModal(false);
-    setEditingStudent(null);
   };
 
   if (loading) {
@@ -80,18 +83,8 @@ export default function StudentsPage() {
   return (
     <div className="p-8 bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6">
         <h2 className="text-3xl font-bold text-amber-900">Student Profiles</h2>
-        <button
-          onClick={() => {
-            setEditingStudent(null);
-            setShowAddModal(true);
-          }}
-          className="flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold shadow-lg transition-all"
-        >
-          <Plus size={20} />
-          Add Student
-        </button>
       </div>
 
       {error && (
@@ -100,34 +93,62 @@ export default function StudentsPage() {
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className="mb-6 relative">
-        <Search
-          size={20}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-        />
-        <input
-          type="text"
-          placeholder="Search by name, email, or roll number..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600 bg-white"
-        />
+      {/* Filter Section */}
+      <div className="mb-6 bg-white p-6 rounded-xl shadow-md border-2 border-amber-200">
+        <h3 className="text-lg font-semibold text-amber-900 mb-4">Filters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search
+              size={20}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              placeholder="Search by name, email, or roll number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600 bg-white"
+            />
+          </div>
+
+          {/* Branch Filter */}
+          <select
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+            className="px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600 bg-white text-gray-700 font-medium"
+          >
+            <option value="">All Branches</option>
+            {branches.map((branch) => (
+              <option key={branch} value={branch}>
+                {branch}
+              </option>
+            ))}
+          </select>
+
+          {/* Year Filter */}
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="px-4 py-3 border-2 border-amber-200 rounded-lg focus:outline-none focus:border-amber-600 bg-white text-gray-700 font-medium"
+          >
+            <option value="">All Years</option>
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Students Table */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-amber-200">
         {filteredStudents.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-xl text-gray-600 mb-4">
-              {searchTerm ? 'No students found matching your search' : 'No students added yet'}
+            <p className="text-xl text-gray-600">
+              {searchTerm || selectedBranch || selectedYear ? 'No students found matching your filters' : 'No students to display'}
             </p>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold"
-            >
-              Add First Student
-            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -138,7 +159,7 @@ export default function StudentsPage() {
                   <th className="px-6 py-4 text-left font-semibold">Roll No</th>
                   <th className="px-6 py-4 text-left font-semibold">Email</th>
                   <th className="px-6 py-4 text-left font-semibold">Branch</th>
-                  <th className="px-6 py-4 text-left font-semibold">Batch</th>
+                  <th className="px-6 py-4 text-left font-semibold">Year</th>
                   <th className="px-6 py-4 text-left font-semibold">CGPA</th>
                   <th className="px-6 py-4 text-left font-semibold">Actions</th>
                 </tr>
@@ -165,17 +186,7 @@ export default function StudentsPage() {
                     <td className="px-6 py-4 font-semibold text-amber-700">
                       {student.cgpa}
                     </td>
-                    <td className="px-6 py-4 flex gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingStudent(student);
-                          setShowAddModal(true);
-                        }}
-                        className="flex items-center gap-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all font-semibold text-sm"
-                      >
-                        <Edit2 size={16} />
-                        Edit
-                      </button>
+                    <td className="px-6 py-4">
                       <button
                         onClick={() => handleDeleteStudent(student.id)}
                         className="flex items-center gap-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-semibold text-sm"
@@ -192,17 +203,7 @@ export default function StudentsPage() {
         )}
       </div>
 
-      {/* Add/Edit Student Modal */}
-      {showAddModal && (
-        <AddStudentModal
-          student={editingStudent}
-          onClose={() => {
-            setShowAddModal(false);
-            setEditingStudent(null);
-          }}
-          onSuccess={handleStudentCreated}
-        />
-      )}
+
     </div>
   );
 }

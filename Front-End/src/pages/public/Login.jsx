@@ -42,6 +42,7 @@ const Login = () => {
       // ✅ Safely extract accessToken
       const accessToken = data?.data?.accessToken || data?.accessToken;
       if (accessToken) {
+          localStorage.clear();
         localStorage.setItem("token", accessToken);
         console.log("token successfully saved!");
         const userType=data?.data?.role;

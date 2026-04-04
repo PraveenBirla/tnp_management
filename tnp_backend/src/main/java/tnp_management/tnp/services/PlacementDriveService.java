@@ -68,7 +68,13 @@ public class PlacementDriveService {
                    dto.setExpired(
                            placementDrive.getDeadline() != null && placementDrive.getDeadline().isBefore(LocalDateTime.now())
                    );
+                    boolean isRegistered = placementDrive.getRegistrations()
+                            .stream()
+                            .anyMatch(reg -> reg.getStudent().getId().equals(user.getId()));
+                    dto.setRegistered(isRegistered);
                     return dto;
+
+
                 })
                 .collect(Collectors.toList());
     }

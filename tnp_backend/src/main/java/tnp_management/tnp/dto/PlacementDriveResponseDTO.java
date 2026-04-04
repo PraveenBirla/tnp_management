@@ -28,4 +28,5 @@ public class PlacementDriveResponseDTO {
     private LocalDateTime driveDate;
     private String description;
     private boolean  isExpired;
+   private boolean isRegistered;
 }

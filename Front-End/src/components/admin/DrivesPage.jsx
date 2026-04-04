@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import CreateDriveModal from './CreateDriveModal';
+import { fetchWithAuth } from '../../api/fetchWithAuth'
 
 export default function DrivesPage() {
   const [drives, setDrives] = useState([]);
@@ -10,6 +11,7 @@ export default function DrivesPage() {
   const [showEditModal, setShowEditModal] = useState(false); // ✅ Added missing state
   const [selectedDrive, setSelectedDrive] = useState(null);
   const [registrations, setRegistrations] = useState({});
+  const [showViewModal, setShowViewModal] = useState(false);
 
   const token = localStorage.getItem('token');
 
@@ -20,12 +22,17 @@ export default function DrivesPage() {
   const fetchDrives = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/admin/all_drives', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetchWithAuth('/admin/all_drives');
+
+      if(response.ok){
       const data = await response.json();
       setDrives(data.data || []);
       setError(null);
+      }
+  else{
+      setError("Failed to load drives");
+       console.error("Error status:", response.status);
+         }
     } catch (err) {
       setError('Failed to load drives');
       console.error(err);
@@ -36,15 +43,21 @@ export default function DrivesPage() {
 
   const fetchRegistrations = async (driveId) => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/admin/drive/students_list/${driveId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await fetchWithAuth(
+        `/admin/drive/students_list/${driveId}`,
       );
+  if(response.ok){
       const data = await response.json();
       setRegistrations((prev) => ({
         ...prev,
         [driveId]: data.data || [],
       }));
+  }
+    else{
+      setError("Failed to Registrations");
+       console.error("Error status:", response.status);
+         }
+
     } catch (err) {
       console.error('Failed to fetch registrations:', err);
     }
@@ -58,9 +71,8 @@ export default function DrivesPage() {
   const handleDeleteDrive = async (driveId) => {
     if (!window.confirm('Are you sure you want to delete this drive?')) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/admin/delete_drive/${driveId}`, {
+      const response = await fetchWithAuth(`/admin/delete_drive/${driveId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         setDrives(drives.filter((d) => d.id !== driveId));
@@ -175,6 +187,7 @@ export default function DrivesPage() {
                 onClick={() => {
                   setSelectedDrive(drive);
                   fetchRegistrations(drive.id);
+                  setShowViewModal(true);
                 }}
                 className="flex-1 py-2 text-sm font-medium text-[#451a03] hover:bg-[#fdf6ec] transition"
               >
@@ -235,7 +248,7 @@ export default function DrivesPage() {
       )}
 
       {/* Registrations Modal */}
-      {selectedDrive && registrations[selectedDrive.id] && (
+      {showViewModal && selectedDrive && registrations[selectedDrive.id] && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-[#fffdf7] rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-xl border border-[#f1e6d3]">
             <div className="flex items-center justify-between p-4 border-b border-[#f1e6d3]">
@@ -246,11 +259,14 @@ export default function DrivesPage() {
                 <p className="text-sm text-[#7c5e3c]">Registrations</p>
               </div>
               <button
-                onClick={() => setSelectedDrive(null)}
-                className="text-[#7c5e3c] hover:text-[#451a03] text-lg"
-              >
-                ✕
-              </button>
+                    onClick={() => {
+                      setShowViewModal(false);
+                      setSelectedDrive(null);
+                    }}
+                    className="text-[#7c5e3c] hover:text-[#451a03] text-lg"
+                  >
+                    ✕
+                  </button>
             </div>
 
             <div className="p-4 overflow-y-auto max-h-[60vh]">
@@ -285,11 +301,14 @@ export default function DrivesPage() {
 
             <div className="p-4 border-t border-[#f1e6d3]">
               <button
-                onClick={() => setSelectedDrive(null)}
-                className="w-full py-2.5 bg-[#C08552] hover:bg-[#8C5A3C] text-white rounded-lg font-medium transition"
-              >
-                Close
-              </button>
+                    onClick={() => {
+                      setShowViewModal(false);
+                      setSelectedDrive(null);
+                    }}
+                    className="w-full py-2.5 bg-[#C08552] hover:bg-[#8C5A3C] text-white rounded-lg font-medium transition"
+                  >
+                    Close
+                  </button>
             </div>
           </div>
         </div>

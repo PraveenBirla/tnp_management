@@ -55,4 +55,21 @@ public class JwtService {
 
         return Long.valueOf(claims.getSubject());
     }
+
+    public boolean isTokenExpired(String token){
+        try {
+            Claims claims = Jwts
+                    .parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            Date expiration = claims.getExpiration();
+            return expiration.before(new Date());
+        } catch (Exception e) {
+
+            return true;
+        }
+    }
 }

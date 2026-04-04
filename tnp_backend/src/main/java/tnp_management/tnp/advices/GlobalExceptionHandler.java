@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tnp_management.tnp.exception.ResourceNotFoundException;
 
+import javax.naming.AuthenticationException;
+import java.nio.file.AccessDeniedException;
+import java.rmi.AccessException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,4 +77,5 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiResponse<?>> buildErrorResponseEntity(ApiError apiError) {
         return new ResponseEntity<>(new ApiResponse<>(apiError), apiError.getStatus());
     }
+
 }

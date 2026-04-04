@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 import CreateEventModal from './CreateEventModal';
-
+import {fetchWithAuth}  from '../../api/fetchWithAuth'
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/admin/events/all', {
+      const response = await fetchWithAuth('/admin/events/all', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -38,8 +38,8 @@ export default function EventsPage() {
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/admin/events/${eventId}`,
+      const response = await fetchWithAuth(
+        `/admin/events/${eventId}`,
         {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },

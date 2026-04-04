@@ -2,6 +2,7 @@ package tnp_management.tnp.services;
 
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,5 +54,33 @@ public class AuthService {
         toBecreade.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return "add successfully";
+    }
+
+    public LoginResponse refreshtoken(String refreshToken) {
+
+        if (jwtService.isTokenExpired(refreshToken)) {
+            throw new AuthenticationServiceException("Refresh token expired");
+        }
+
+        // 2. Extract user ID from token
+        Long userId = jwtService.getUserIdFromToken(refreshToken);
+
+        // 3. Load user from DB
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthenticationServiceException("User not found"));
+
+        // 4. Generate new tokens
+        String newAccessToken = jwtService.generateAccessToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user); // optional: rotate refresh token
+
+
+        LoginResponse response = new LoginResponse();
+        response.setAccessToken(newAccessToken);
+        response.setRefreshToken(newRefreshToken);
+        response.setRole(user.getRole().toString());
+
+        return response;
+
+
     }
 }

@@ -1,5 +1,6 @@
     import React, { useState, useEffect } from 'react';
     import { X } from 'lucide-react';
+    import {fetchWithAuth} from '../../api/fetchWithAuth'
 
     export default function CreateEventModal({ event, onClose, onSuccess }) {
       const [formData, setFormData] = useState({
@@ -61,16 +62,16 @@
 
         try {
           const url = event
-            ? `http://localhost:8080/api/admin/events/${event.id}`
-            : 'http://localhost:8080/api/admin/events/add';
+            ? `/admin/events/${event.id}`
+            : '/admin/events/add';
 
           const method = event ? 'PUT' : 'POST';
 
-          const response = await fetch(url, {
+          const response = await fetchWithAuth(url, {
             method,
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+
             },
             body: JSON.stringify(formData),
           });

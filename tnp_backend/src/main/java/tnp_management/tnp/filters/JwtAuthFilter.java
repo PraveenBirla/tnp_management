@@ -36,21 +36,35 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = requestTokenHeader.split("Bearer")[1].trim();
-         Long userId = jwtService.getUserIdFromToken(token);
-
-        if(userId  != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User user = userService.getUserById(userId);
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(user,  null, user.getAuthorities());
-            authenticationToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        if (request.getServletPath().equals("/api/auth/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        filterChain.doFilter(request,response);
+        String token = requestTokenHeader.split("Bearer")[1].trim();
+        try{
+            Long userId = jwtService.getUserIdFromToken(token);
 
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                User user = userService.getUserById(userId);
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                authenticationToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+
+            filterChain.doFilter(request, response);
+        }
+        catch(io.jsonwebtoken.ExpiredJwtException ex){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Access token expired");
+        }
+        catch (io.jsonwebtoken.JwtException ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid token");
+        }
     }
 }

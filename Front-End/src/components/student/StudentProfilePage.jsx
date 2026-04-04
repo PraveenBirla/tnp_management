@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Save, Loader } from "lucide-react";
-
+import {fetchWithAuth} from '../../api/fetchWithAuth'
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,13 +30,8 @@ export default function StudentProfilePage() {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://localhost:8080/api/student/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await fetchWithAuth(
+        "/student/profile",
       );
 
       // ❌ Profile not found
@@ -83,13 +78,12 @@ export default function StudentProfilePage() {
     try {
       const method = profile ? "PUT" : "POST";
 
-      const response = await fetch(
-        "http://localhost:8080/api/student/profile",
+      const response = await fetchWithAuth(
+        "/student/profile",
         {
           method,
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(formData),
         }
