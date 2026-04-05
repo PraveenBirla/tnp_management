@@ -15,17 +15,13 @@ public interface StudentProfileRepository  extends JpaRepository<StudentProfile 
 
     Optional<StudentProfile> findById(Long id);
 
-    @Query("SELECT new tnp_management.tnp.dto.StudentListDTO(u.id, sp.fullName, u.email, sp.branch, sp.passoutYear, sp.cgpa, sp.phoneNumber) " +
-            "FROM StudentProfile sp JOIN sp.user u")
-    List<StudentListDTO> findAllStudentsCustom();
+    @Query("SELECT sp FROM StudentProfile sp JOIN FETCH sp.user u")
+    List<StudentProfile> findAllStudentsCustom();
 
-
-    @Query("SELECT new tnp_management.tnp.dto.StudentListDTO(" +
-            "u.id, sp.fullName, u.email, sp.branch, sp.passoutYear, sp.cgpa, sp.phoneNumber) " +
-            "FROM StudentProfile sp JOIN sp.user u " +
+    @Query("SELECT sp FROM StudentProfile sp JOIN FETCH sp.user u " +
             "WHERE (:branch IS NULL OR sp.branch = :branch) " +
             "AND (:year IS NULL OR sp.passoutYear = :year)")
-    List<StudentListDTO> findStudentsByFilters(@Param("branch") String branch,
+    List<StudentProfile> findStudentsByFilters(@Param("branch") String branch,
                                                @Param("year") Integer year);
 
 

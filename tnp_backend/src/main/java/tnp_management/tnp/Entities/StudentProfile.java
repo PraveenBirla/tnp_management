@@ -30,6 +30,9 @@ public class StudentProfile {
     private String skills;
     private String resumeUrl;
     private String phoneNumber;
+    private boolean isPlaced = false ;
 
+    @OneToOne(mappedBy = "studentProfile" , cascade = CascadeType.ALL)
+    private PlacedStudent placedStudent;
 
 }
