@@ -24,9 +24,16 @@ public class PlacedStudent {
     @JoinColumn(name = "student_id")
     private StudentProfile studentProfile;
 
+    @Column(name = "company_name" , nullable = false)
     private String companyName;
+
+    @Column(name = "role" , nullable = false)
     private String role;
+
+    @Column(name = "package" , nullable = false)
     private Double packageAmount;
+
+    @Column(name = "placement_date" , nullable = false)
     private LocalDate placementDate;
 
 }

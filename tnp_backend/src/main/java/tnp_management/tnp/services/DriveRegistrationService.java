@@ -40,7 +40,7 @@ public class DriveRegistrationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("user not found"));
         StudentProfile profile = studentProfileRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("ProfileNot Found"));
+                .orElseThrow(() -> new RuntimeException("Profile Not Found"));
 
         PlacementDrive drive = placementDriveRepository.findById(driveId)
                 .orElseThrow(() -> new RuntimeException("Drive Not Found"));

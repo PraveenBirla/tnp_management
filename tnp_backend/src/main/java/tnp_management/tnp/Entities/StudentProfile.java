@@ -22,14 +22,29 @@ public class StudentProfile {
     @MapsId
     @JoinColumn(name="user_id")
     private User user;
+
+    @Column(name="student_name" , nullable = false)
     private String fullName;
+
+    @Column(name="student_cgpa" , nullable = false)
     private Double cgpa;
+
+    @Column(name="student_branch" , nullable = false)
     private String branch;
+
+    @Column(name="student_enrollment_no" , nullable = false)
     private String studentEnrollmentNo ;
+
+    @Column(name="student_passoutyear" , nullable = false)
     private Integer passoutYear;
+
     private String skills;
+
     private String resumeUrl;
+
+    @Column(name="student_contact_number" , nullable = false)
     private String phoneNumber;
+
     private boolean isPlaced = false ;
 
     @OneToOne(mappedBy = "studentProfile" , cascade = CascadeType.ALL)

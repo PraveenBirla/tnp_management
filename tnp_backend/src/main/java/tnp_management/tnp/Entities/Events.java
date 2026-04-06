@@ -21,9 +21,10 @@ public class Events {
      @Column(nullable = false)
      private String title ;
 
+    @Column(name = "event_location", nullable = false)
      private String location ;
 
-     @Column(name = "event_date_time")
+     @Column(name = "event_date_time", nullable = false)
      private LocalDateTime dateTime;
 
      @ElementCollection

@@ -4,18 +4,18 @@ package tnp_management.tnp.controller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import tnp_management.tnp.Entities.User;
+import org.springframework.web.bind.annotation.*;
 import tnp_management.tnp.dto.LoginRequest;
 import tnp_management.tnp.dto.LoginResponse;
+import tnp_management.tnp.dto.RegistrationRequestDTO;
 import tnp_management.tnp.services.AuthService;
 
 import java.util.Arrays;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,14 +29,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody User user){
-      return  authService.register(user);
+    public  ResponseEntity<Map<String, String>> register( @Valid  @RequestBody RegistrationRequestDTO dto){
+         authService.register(dto);
+         return ResponseEntity.ok(Map.of("message", "add successfully"));
 
     }
 
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request , HttpServletResponse response)
+    public ResponseEntity<LoginResponse> login( @Valid  @RequestBody LoginRequest request , HttpServletResponse response)
     {
        LoginResponse loginResponse = authService.login(request);
 
@@ -65,5 +66,12 @@ public class AuthController {
         LoginResponse loginResponseDto = authService.refreshtoken(refreshtoken);
 
         return ResponseEntity.ok(loginResponseDto);
+    }
+
+    @Value("${MAIL_USERNAME}")
+    private  String testvariable;
+    @GetMapping("/hello")
+    public ResponseEntity<Map<String , String>> hello(){
+           return ResponseEntity.ok(Map.of("hello" , testvariable));
     }
 }

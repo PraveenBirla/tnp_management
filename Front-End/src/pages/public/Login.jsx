@@ -1,7 +1,11 @@
+// src/components/Login.jsx
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 const Login = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -9,6 +13,7 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -33,34 +38,29 @@ const Login = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Invalid email or password");
+        const data = await response.json();
+        throw new Error(data.message || "Invalid email or password");
       }
 
       const data = await response.json();
-      console.log("Full response:", data);
-
-      // ✅ Safely extract accessToken
       const accessToken = data?.data?.accessToken || data?.accessToken;
-      if (accessToken) {
-          localStorage.clear();
-        localStorage.setItem("token", accessToken);
-        console.log("token successfully saved!");
-        const userType=data?.data?.role;
-        console.log(userType);
-        if (userType === "admin" || userType === "ADMIN") {
-                  navigate("/admin/drives", { state: { role: userType } });
-            } else if(userType === "student" || userType === "STUDENT"){
-                  navigate("/student/profile", { state: { role: userType } });
-                }
 
-        // ✅ Redirect after storing
+      if (!accessToken) {
+        throw new Error("Login succeeded but no access token returned");
+      }
 
-      } else {
-        console.error("Access token not found in response:", data);
-        setError("Login succeeded but no access token returned");
+      localStorage.clear();
+      localStorage.setItem("token", accessToken);
+      console.log("token successfully saved!");
+
+      const userType = data?.data?.role;
+      if (userType === "admin" || userType === "ADMIN") {
+        navigate("/admin/drives", { state: { role: userType } });
+      } else if (userType === "student" || userType === "STUDENT") {
+        navigate("/student/profile", { state: { role: userType } });
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -74,6 +74,7 @@ const Login = () => {
           <p className="text-[#5d4037] mb-6">
             Access your Training & Placement account
           </p>
+
           <form onSubmit={handleSubmit} className="space-y-4 text-left">
             <div>
               <label className="block text-sm font-medium text-[#5d4037] mb-1">
@@ -89,23 +90,45 @@ const Login = () => {
                 className="w-full px-4 py-2 rounded-lg border border-[#d6c7a1] bg-white focus:outline-none focus:ring-2 focus:ring-[#d97706]"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-[#5d4037] mb-1">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-lg border border-[#d6c7a1] bg-white focus:outline-none focus:ring-2 focus:ring-[#d97706]"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 rounded-lg border border-[#d6c7a1] bg-white focus:outline-none focus:ring-2 focus:ring-[#d97706]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#5d4037] hover:text-[#451a03]"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
+
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
             )}
+
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-[#d97706] hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={loading}

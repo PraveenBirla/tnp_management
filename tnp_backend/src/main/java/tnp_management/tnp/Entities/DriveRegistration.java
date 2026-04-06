@@ -24,7 +24,6 @@ public class DriveRegistration {
     @JoinColumn(name = "student_id")
     private StudentProfile student;
 
-    private String studentEnrollmentNo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "drive_id")

@@ -4,7 +4,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout from './components/PublicLayout'
 
 import Login from "./pages/public/Login"
-
+import ForgotPassword from "./pages/public/ForgotPassword"
+import ResetPassword from "./pages/public/ResetPassword"
 
 // Public Pages
 import Landing from './pages/public/Landing'
@@ -36,6 +37,8 @@ function App() {
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login/>} />
+         <Route path="/forgot-password" element={<ForgotPassword />} />
+         <Route path="/reset-password" element={<ResetPassword />} />
      </Route>
 
 

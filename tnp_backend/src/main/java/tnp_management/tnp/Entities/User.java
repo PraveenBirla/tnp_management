@@ -2,6 +2,7 @@ package tnp_management.tnp.Entities;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @Email(message = "Invalid Email Formate")
     private String  email;
 
     @Column(nullable = false)

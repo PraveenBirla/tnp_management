@@ -1,5 +1,6 @@
 package tnp_management.tnp.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,7 @@ public class AdminDriveRegistrationController {
     }
 
     @GetMapping("/students_list/{driveId}")
-    public ResponseEntity<List<DriveRegistrationResponseDTO>> getAll(@PathVariable Long driveId){
+    public ResponseEntity<List<DriveRegistrationResponseDTO>> getAll( @Valid  @PathVariable Long driveId){
 
         List<DriveRegistrationResponseDTO> dto = driveRegistrationService.getAll(driveId);
 

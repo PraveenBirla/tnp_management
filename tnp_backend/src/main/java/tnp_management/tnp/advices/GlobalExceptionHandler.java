@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
 
         ApiError apiError = ApiError.builder()
                 .status(HttpStatus.UNAUTHORIZED)
-                .message("Invalid username or password")
+                .message(ex.getMessage())
                 .build();
 
         return buildErrorResponseEntity(apiError);
