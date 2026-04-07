@@ -4,27 +4,43 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import tnp_management.tnp.dto.ContactMessageDTO;
+import tnp_management.tnp.dto.DriveEmailRequestDTO;
+import tnp_management.tnp.dto.PlacementDriveMessageDTO;
 
 @Service
 public class KafkaProducerService {
 
-    private final KafkaTemplate<String,  String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
-    private static final String TOPIC = "contact-topic";
+    private final KafkaTemplate<String,  Object> kafkaTemplate;
 
-    public KafkaProducerService(KafkaTemplate<String,  String> kafkaTemplate, ObjectMapper objectMapper) {
+    private static final String CONTACT_TOPIC = "contact-topic";
+    private static final String DRIVE_TOPIC = "drive-topic";
+    private static final String  DRIVE_EMAIL_TOPIC = "drive-email-topic";
+
+    public KafkaProducerService(KafkaTemplate<String, Object> kafkaTemplate ) {
         this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
+
     }
 
     public void sendContactMessage(ContactMessageDTO dto){
         try {
-            String json = objectMapper.writeValueAsString(dto);
-            kafkaTemplate.send(TOPIC, json);
+            kafkaTemplate.send(CONTACT_TOPIC,  dto);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public void sendDriveMessage(PlacementDriveMessageDTO dto){
+        try{
+            kafkaTemplate.send(DRIVE_TOPIC , dto);
+            System.out.println("Drive Message Sent to The Kafka");
+        }
+        catch (Exception e){
+             e.printStackTrace();
+        }
+    }
+
+    public void sendEmail(DriveEmailRequestDTO dto){
+        kafkaTemplate.send(DRIVE_EMAIL_TOPIC , dto);
+    }
 
 }

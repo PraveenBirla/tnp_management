@@ -15,6 +15,6 @@ public class AppConfig {
         return new ModelMapper();
     }
 
-    @Bean
-    public ObjectMapper getobjectModel(){return new ObjectMapper();}
+//    @Bean
+//    public ObjectMapper getobjectModel(){return new ObjectMapper();}
 }

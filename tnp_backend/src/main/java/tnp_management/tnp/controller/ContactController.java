@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import tnp_management.tnp.dto.ContactMessageDTO;
 import tnp_management.tnp.services.KafkaProducerService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class ContactController {
@@ -16,10 +18,11 @@ public class ContactController {
 
     public ContactController(KafkaProducerService kafkaProducerService) {
         this.kafkaProducerService = kafkaProducerService;
+
     }
 
     @PostMapping("/contact")
-    public ResponseEntity<Void> contact(@RequestBody ContactMessageDTO dto){
+    public ResponseEntity<Map<String,String>> contact(@RequestBody ContactMessageDTO dto){
           kafkaProducerService.sendContactMessage(dto);
           return   ResponseEntity.ok().build();
     }

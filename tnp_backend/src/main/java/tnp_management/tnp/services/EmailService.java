@@ -4,6 +4,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class EmailService {
 
@@ -39,6 +41,16 @@ public class EmailService {
         );
         mailSender.send(message);
         System.out.println("Otp Email Sent");
+    }
+
+    public void sendDriveEmail(String email , String  emailBody){
+             SimpleMailMessage message = new SimpleMailMessage();
+
+             message.setTo(email);
+             message.setSubject("New Placement Drive");
+             message.setText(emailBody);
+             mailSender.send(message);
+            System.out.println("Email sent to the Eligible Student");
     }
 
 }

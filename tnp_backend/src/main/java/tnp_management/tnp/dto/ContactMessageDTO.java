@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,6 +26,8 @@ public class ContactMessageDTO {
 
     @NotBlank(message = "message is not blank")
     private String message;
+
+
 
 
 }

@@ -15,4 +15,21 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic createDriveTopic(){
+        return TopicBuilder.name("drive-topic")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic createDriveEmailTopic(){
+        return TopicBuilder.name("drive-email-topic")
+                .partitions(5)
+                .replicas(1)
+                .build();
+    }
+
 }

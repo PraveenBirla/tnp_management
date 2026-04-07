@@ -38,5 +38,16 @@ ORDER BY sp.passoutYear
 """)
     List<PlacementStatsProjection> getPlacementStats();
 
+    @Query("SELECT sp FROM StudentProfile sp " +
+            "JOIN FETCH sp.user u " +
+            "WHERE (:branches IS NULL OR sp.branch IN :branches) " +
+            "AND (:years IS NULL OR sp.passoutYear IN :years) " +
+            "AND (:cgpa IS NULL OR sp.cgpa >= :cgpa)")
+    List<StudentProfile> findEligibleStudents(
+            @Param("branches") List<String> branches,
+            @Param("years") List<Integer> years,
+            @Param("cgpa") Double cgpa
+    );
+
 
 }

@@ -9,6 +9,7 @@ import tnp_management.tnp.Entities.PlacementDrive;
 import tnp_management.tnp.Entities.StudentProfile;
 import tnp_management.tnp.Entities.User;
 import tnp_management.tnp.dto.PlacementDriveDTO;
+import tnp_management.tnp.dto.PlacementDriveMessageDTO;
 import tnp_management.tnp.dto.PlacementDriveResponseDTO;
 import tnp_management.tnp.repositories.PlacementDriveRepository;
 import tnp_management.tnp.repositories.StudentProfileRepository;
@@ -25,12 +26,14 @@ public class PlacementDriveService {
     private final PlacementDriveRepository placementDriveRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final UserRepository userRepository;
+    private final KafkaProducerService kafkaProducerService;
 
-    public PlacementDriveService(ModelMapper modelMapper, PlacementDriveRepository placementDriveRepository, StudentProfileRepository studentProfileRepository, UserRepository userRepository) {
+    public PlacementDriveService(ModelMapper modelMapper, PlacementDriveRepository placementDriveRepository, StudentProfileRepository studentProfileRepository, UserRepository userRepository, KafkaProducerService kafkaProducerService) {
         this.modelMapper = modelMapper;
         this.placementDriveRepository = placementDriveRepository;
         this.studentProfileRepository = studentProfileRepository;
         this.userRepository = userRepository;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     public PlacementDriveDTO createDrive(PlacementDriveDTO placementDriveDTO) {
@@ -38,7 +41,13 @@ public class PlacementDriveService {
 
         PlacementDrive savedDrive = placementDriveRepository.save(placementDrive);
 
+        PlacementDriveMessageDTO  dto = modelMapper.map(placementDriveDTO , PlacementDriveMessageDTO.class);
+
+        kafkaProducerService.sendDriveMessage(dto);
+
         return modelMapper.map(savedDrive , PlacementDriveDTO.class);
+
+
 
     }
 
