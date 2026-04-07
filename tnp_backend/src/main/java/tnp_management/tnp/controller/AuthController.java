@@ -68,10 +68,10 @@ public class AuthController {
         return ResponseEntity.ok(loginResponseDto);
     }
 
-    @Value("${MAIL_USERNAME}")
-    private  String testvariable;
-    @GetMapping("/hello")
-    public ResponseEntity<Map<String , String>> hello(){
-           return ResponseEntity.ok(Map.of("hello" , testvariable));
-    }
+//    @Value("${MAIL_USERNAME}")
+//    private  String testvariable;
+//    @GetMapping("/hello")
+//    public ResponseEntity<Map<String , String>> hello(){
+//           return ResponseEntity.ok(Map.of("hello" , testvariable));
+//    }
 }

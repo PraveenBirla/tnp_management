@@ -1,5 +1,7 @@
 package tnp_management.tnp.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +25,7 @@ public class AdminEventController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<EventRequestDTO> addEvent(@RequestBody EventRequestDTO dto){
+    public ResponseEntity<EventRequestDTO> addEvent( @Valid  @RequestBody EventRequestDTO dto){
         EventRequestDTO created = eventService.createEvent(dto);
         return new ResponseEntity<>(created , HttpStatus.CREATED);
     }

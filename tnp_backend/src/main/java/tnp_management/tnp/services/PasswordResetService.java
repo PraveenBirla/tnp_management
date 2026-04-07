@@ -1,5 +1,6 @@
 package tnp_management.tnp.services;
 
+import jakarta.transaction.Transactional;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,12 +21,13 @@ public class PasswordResetService {
 
     private final OtpRepository otpRepository;
     private final UserRepository userRepository;
-    private final JavaMailSender mailSender;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    public PasswordResetService(OtpRepository otpRepository, UserRepository userRepository, JavaMailSender mailSender, PasswordEncoder passwordEncoder) {
+    public PasswordResetService(OtpRepository otpRepository, UserRepository userRepository,  EmailService emailService, PasswordEncoder passwordEncoder) {
         this.otpRepository = otpRepository;
         this.userRepository = userRepository;
-        this.mailSender = mailSender;
+        this.emailService = emailService;
+
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -43,24 +45,20 @@ public class PasswordResetService {
         otpDetails.setExpiryTime(LocalDateTime.now().plusMinutes(5));
 
         otpRepository.save(otpDetails);
-        sendEmail(request.getEmail() , otp);
+        emailService.sendOtpEmail(request.getEmail() , otp);
     }
 
 
-    private void sendEmail(String email, String otp) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Password Reset OTP");
-        message.setText("Your OTP is: " + otp);
-        mailSender.send(message);
-    }
-
+    @Transactional
     public void  resetPassword(ResetPasswordRequest request){
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         OtpDetails otpDetails = otpRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("No OTP requested for this user"));
+
+        System.out.println("Stored OTP: [" + otpDetails.getOtp() + "]");
+        System.out.println("Request OTP: [" + request.getOtp() + "]");
 
         if(!otpDetails.getOtp().equals(request.getOtp())){
             throw new RuntimeException("Invalid OTP");

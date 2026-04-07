@@ -1,7 +1,6 @@
 package tnp_management.tnp.services;
 
-import org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProvider;
-import org.jspecify.annotations.Nullable;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import tnp_management.tnp.Entities.DriveRegistration;

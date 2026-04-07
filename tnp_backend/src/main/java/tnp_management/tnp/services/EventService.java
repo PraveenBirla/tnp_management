@@ -1,7 +1,7 @@
 package tnp_management.tnp.services;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.core.context.SecurityContext;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import tnp_management.tnp.Entities.Events;

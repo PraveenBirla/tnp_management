@@ -40,9 +40,11 @@ const ForgotPassword = () => {
         throw new Error(result.message || "Failed to send reset email");
       }
 
-      setSuccess("Password reset link sent. Please check your email.");
-      // Optional: auto redirect to login or reset page
-      // setTimeout(() => navigate("/login"), 3000);
+      setSuccess(result.data.message);
+
+      setTimeout(() => {
+              navigate("/reset-password");
+            }, 2000);
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -56,7 +58,7 @@ const ForgotPassword = () => {
         <div className="w-full max-w-md bg-white/60 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-[#e7dcc7]">
           <h2 className="text-3xl font-bold text-[#451a03] mb-2">Forgot Password</h2>
           <p className="text-[#5d4037] mb-6">
-            Enter your email to receive a password reset link
+            Enter your email to receive  Verification OTP
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4 text-left">

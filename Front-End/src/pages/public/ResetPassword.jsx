@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("praveen27bc049@satiengg.in"); // or leave empty
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
