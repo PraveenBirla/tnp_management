@@ -17,6 +17,5 @@ public class StudentProfileDTO {
     private Integer passoutYear;
     private String studentEnrollmentNo;
     private String skills;
-    private String resumeUrl;
     private String phoneNumber;
 }

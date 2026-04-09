@@ -1,10 +1,47 @@
 import { Link, useLocation } from 'react-router-dom'
 import { LogOut, Menu, X, Briefcase } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function StudentTopNavbar() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isVerified, setIsVerified] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    checkVerificationStatus()
+  }, [])
+
+  const checkVerificationStatus = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(
+        'http://localhost:8080/api/student/profile/verify',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsVerified(data?.data?.verified === true)
+      }
+    } catch (err) {
+      console.error('Error checking verification status:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Don't render navbar if not verified
+  if (loading || !isVerified) {
+    return null
+  }
 
   const sections = [
     { path: '/student/profile', label: 'Profile' },

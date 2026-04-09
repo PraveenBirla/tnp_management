@@ -26,7 +26,8 @@ import StudentEventsPage from './components/student/StudentEventsPage'
 import StudentLearningPage from './components/student/StudentLearningPage'
 import StudentAlumniPage from './components/student/StudentAlumniPage'
 import StudentProfilePage from './components/student/StudentProfilePage'
-
+import StudentProfilePending from './components/student/StudentProfilePending'
+import StudentCreateProfile from './components/student/StudentCreateProfile'
 function App() {
   return (
     <Routes>
@@ -60,7 +61,8 @@ function App() {
          <Route path="learning" element={<StudentLearningPage />} />
          <Route path="alumni" element={<StudentAlumniPage />} />
          <Route path="profile" element={<StudentProfilePage />} />
-
+          <Route path="profile-pending" element={<StudentProfilePending />}/>
+          <Route path="create-profile"  element={<StudentCreateProfile/>}/>
       </Route>
     </Routes>
   )

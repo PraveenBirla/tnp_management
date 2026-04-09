@@ -96,7 +96,7 @@ const ForgotPassword = () => {
                 disabled={loading}
                 className="flex-1 rounded-xl bg-[#451a03] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-[#2d1102]"
               >
-                {loading ? "Sending..." : "Send Reset Link"}
+                {loading ? "Sending..." : "Send OTP"}
               </button>
             </div>
           </form>

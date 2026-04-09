@@ -10,8 +10,11 @@ import { useNavigate } from "react-router-dom";
    options.headers = {
      ...(options.headers || {}),
      Authorization: `Bearer ${token}`,
-     "Content-Type": "application/json"
    };
+
+   if (!(options.body instanceof FormData)) {
+     options.headers["Content-Type"] = "application/json";
+   }
 
    let response = await fetch(`${BASE_URL}${endpoint}`, options);
 

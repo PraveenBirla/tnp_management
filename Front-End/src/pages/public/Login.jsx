@@ -1,5 +1,3 @@
-// src/components/Login.jsx
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,11 +26,10 @@ const Login = () => {
     setError("");
 
     try {
+      // 🔑 Login request
       const response = await fetch("http://localhost:8080/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
         credentials: "include",
       });
@@ -49,15 +46,50 @@ const Login = () => {
         throw new Error("Login succeeded but no access token returned");
       }
 
+      // Save token
       localStorage.clear();
       localStorage.setItem("token", accessToken);
       console.log("token successfully saved!");
 
       const userType = data?.data?.role;
+
+
       if (userType === "admin" || userType === "ADMIN") {
         navigate("/admin/drives", { state: { role: userType } });
       } else if (userType === "student" || userType === "STUDENT") {
-        navigate("/student/profile", { state: { role: userType } });
+        try {
+
+          const profileResponse = await fetch(
+            "http://localhost:8080/api/student/profile/verify",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            }
+          );
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            console.log(profileData.data.verified);
+
+            const isVerified = profileData?.data?.verified;
+
+           if (isVerified === true || String(isVerified) === "true") {
+             navigate("/student/profile", { state: { role: userType } });
+           } else {
+             navigate("/student/profile-pending", { state: { role: userType } });
+           }
+          } else {
+
+            navigate("/student/create-profile", { state: { role: userType } });
+          }
+        } catch (err) {
+          console.error("Profile verification error:", err);
+          navigate("/student/create-profile", { state: { role: userType } });
+        }
       }
     } catch (err) {
       setError(err.message || "Login failed. Please try again.");
