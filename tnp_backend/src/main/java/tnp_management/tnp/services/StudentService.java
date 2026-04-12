@@ -11,24 +11,28 @@ import tnp_management.tnp.dto.StudentVerifiedDTO;
 import tnp_management.tnp.repositories.StudentProfileRepository;
 import tnp_management.tnp.repositories.UserRepository;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class StudentService {
 
     private final UserRepository userRepository;
 
+    private final AsyncUploadeService uploadeService;
 
     private final ModelMapper modelMapper;
 
     private final StudentProfileRepository studentProfileRepository;
 
-    private final FileUploadService fileUploadService;
 
 
-    public StudentService(UserRepository userRepository, ModelMapper modelMapper, StudentProfileRepository studentProfileRepository, FileUploadService fileUploadService) {
+
+    public StudentService(UserRepository userRepository, AsyncUploadeService uploadeService, ModelMapper modelMapper, StudentProfileRepository studentProfileRepository ) {
         this.userRepository = userRepository;
+        this.uploadeService = uploadeService;
         this.modelMapper = modelMapper;
         this.studentProfileRepository = studentProfileRepository;
-        this.fileUploadService = fileUploadService;
+
     }
 
     public StudentProfileRequestDTO updateProfile(Long userId, StudentProfileRequestDTO studentProfileRequestDTO) {
@@ -75,18 +79,26 @@ public class StudentService {
         StudentProfile profile = studentProfileRepository.findById(userId)
                 .orElse(new StudentProfile());
 
-        String resumeUrl = fileUploadService.uploadFile(resume);
-        String tenthUrl = fileUploadService.uploadFile(tenth);
-        String twelfthUrl = fileUploadService.uploadFile(twelfth);
-        String lastSemesterUrl = fileUploadService.uploadFile(lastsemester);
 
-        profile.setUser(user);
-        modelMapper.map(dto , profile);
-        profile.setResumeUrl(resumeUrl);
-        profile.setTenthMarksheetUrl(tenthUrl);
-        profile.setTwelfthMarksheetUrl(twelfthUrl);
-        profile.setLastSemesterMarkSheetUrl(lastSemesterUrl);
 
+        CompletableFuture<String> resumeUrl =  uploadeService.uploadAsync(resume);
+        CompletableFuture<String> tenthUrl = uploadeService.uploadAsync( tenth);
+        CompletableFuture<String> twelfthUrl = uploadeService.uploadAsync(twelfth);
+        CompletableFuture<String> lastSemesterUrl = uploadeService.uploadAsync(lastsemester);
+
+        CompletableFuture.allOf(resumeUrl,tenthUrl,twelfthUrl, lastSemesterUrl);
+
+        try {
+            profile.setUser(user);
+            modelMapper.map(dto, profile);
+            profile.setResumeUrl(resumeUrl.get());
+            profile.setTenthMarksheetUrl(tenthUrl.get());
+            profile.setTwelfthMarksheetUrl(twelfthUrl.get());
+            profile.setLastSemesterMarkSheetUrl(lastSemesterUrl.get());
+        }
+        catch (Exception e){
+            throw new RuntimeException("Error getting upload results");
+        }
         studentProfileRepository.save(profile);
 
 
