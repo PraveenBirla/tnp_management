@@ -21,8 +21,9 @@ public class FileUploadService {
              Map uploadResult = cloudinary.uploader().upload(
                     file.getBytes(),
                      Map.of(
-                             "resource_type", "auto",
-                             "folder", "student_docs"
+                             "resource_type", "raw",
+                             "folder", "student_docs",
+                             "type", "upload"
                      )
              );
              return uploadResult.get("secure_url").toString();

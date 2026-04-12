@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StudentVerifiedDTO {
 
+    private String fullName;
+    private String studentEnrollmentNo;
+    private String branch;
     private boolean isVerified;
 
 }

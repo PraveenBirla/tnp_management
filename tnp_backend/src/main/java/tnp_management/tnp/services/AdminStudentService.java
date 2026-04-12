@@ -2,9 +2,14 @@ package tnp_management.tnp.services;
 
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import tnp_management.tnp.Entities.StudentProfile;
-import tnp_management.tnp.dto.StudentListDTO;
+
+import tnp_management.tnp.Entities.User;
+import tnp_management.tnp.dto.StudentProfileResponseDTO;
 import tnp_management.tnp.repositories.StudentProfileRepository;
 
 import java.util.List;
@@ -21,16 +26,29 @@ public class AdminStudentService {
         this.modelMapper = modelMapper;
     }
 
-    public List<StudentListDTO> getFilteredStudents(String branch, Integer year) {
-    List<StudentProfile> students ;
+    public Page<StudentProfileResponseDTO> getFilteredStudents(String branch, Integer year, Integer page , Integer size) {
+
+        Page<StudentProfile> students ;
+
+
+
+        Pageable pageable = PageRequest.of(page ,size);
 
         if (branch == null && year == null)
-             students =  studentProfileRepository.findAllStudentsCustom();
+             students =  studentProfileRepository.findAll(pageable);
          else
-             students = studentProfileRepository.findStudentsByFilters(branch , year);
+             students = studentProfileRepository.findStudentsByFilters(branch , year , pageable);
 
-         return students.stream().
-                 map(studentProfile -> modelMapper.map(studentProfile , StudentListDTO.class))
-                 .collect(Collectors.toList());
+         return students.map(student ->
+                modelMapper.map(student, StudentProfileResponseDTO.class)
+        );
+    }
+
+    public void verifyStudent(Long userId) {
+          StudentProfile studentProfile = studentProfileRepository.findById(userId)
+                  .orElseThrow(() -> new RuntimeException("Student Not Found"));
+
+           studentProfile.setVerified(true);
+           studentProfileRepository.save(studentProfile);
     }
 }

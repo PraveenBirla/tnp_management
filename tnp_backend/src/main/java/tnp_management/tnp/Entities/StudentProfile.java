@@ -18,7 +18,7 @@ public class StudentProfile {
     @Id
     private Long id ;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name="user_id")
     private User user;
@@ -61,7 +61,7 @@ public class StudentProfile {
     private boolean isVerified = false;
 
 
-    @OneToOne(mappedBy = "studentProfile" , cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "studentProfile" , cascade = CascadeType.ALL , fetch = FetchType.LAZY)
     private PlacedStudent placedStudent;
 
 

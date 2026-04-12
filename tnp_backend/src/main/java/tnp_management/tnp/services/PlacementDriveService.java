@@ -95,6 +95,7 @@ public class PlacementDriveService {
         placementDriveRepository.deleteById(id);
     }
 
+
     public void updateDrive(Long id, PlacementDriveDTO placementDriveDTO) {
 
         PlacementDrive drive = placementDriveRepository.findById(id)

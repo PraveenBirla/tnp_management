@@ -89,7 +89,7 @@ export default function StudentCreateProfile() {
         setSuccess(true);
         setTimeout(() => {
           // Redirect to pending verification page
-          navigate("/student/pending-profile");
+          navigate("/student/profile-pending");
         }, 1500);
       } else {
         const errResult = await response.json();

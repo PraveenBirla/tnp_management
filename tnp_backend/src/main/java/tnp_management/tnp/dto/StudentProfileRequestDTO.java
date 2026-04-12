@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentProfileDTO {
+public class StudentProfileRequestDTO {
 
     private String fullName;
     private Double cgpa;
@@ -18,4 +18,5 @@ public class StudentProfileDTO {
     private String studentEnrollmentNo;
     private String skills;
     private String phoneNumber;
+
 }

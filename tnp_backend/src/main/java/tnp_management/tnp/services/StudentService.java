@@ -5,7 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tnp_management.tnp.Entities.StudentProfile;
 import tnp_management.tnp.Entities.User;
-import tnp_management.tnp.dto.StudentProfileDTO;
+import tnp_management.tnp.dto.StudentProfileRequestDTO;
+import tnp_management.tnp.dto.StudentProfileResponseDTO;
 import tnp_management.tnp.dto.StudentVerifiedDTO;
 import tnp_management.tnp.repositories.StudentProfileRepository;
 import tnp_management.tnp.repositories.UserRepository;
@@ -30,7 +31,7 @@ public class StudentService {
         this.fileUploadService = fileUploadService;
     }
 
-    public StudentProfileDTO updateProfile(Long userId, StudentProfileDTO studentProfileDTO) {
+    public StudentProfileRequestDTO updateProfile(Long userId, StudentProfileRequestDTO studentProfileRequestDTO) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -38,21 +39,21 @@ public class StudentService {
         StudentProfile studentProfile = studentProfileRepository.findById(user.getId()).
                 orElse(new StudentProfile());
 
-        modelMapper.map(studentProfileDTO , studentProfile);
+        modelMapper.map(studentProfileRequestDTO, studentProfile);
 
 
         studentProfile.setUser(user);
 
          StudentProfile savedProfile = studentProfileRepository.save(studentProfile);
 
-        return modelMapper.map( savedProfile, StudentProfileDTO.class);
+        return modelMapper.map( savedProfile, StudentProfileRequestDTO.class);
 
     }
 
 
 
 
-    public StudentProfileDTO getProfile(Long userId) {
+    public StudentProfileResponseDTO getProfile(Long userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -61,12 +62,12 @@ public class StudentService {
                 .orElseThrow(() -> new RuntimeException("Student profile not found"));
 
 
-        return modelMapper.map(studentProfile, StudentProfileDTO.class);
+        return modelMapper.map(studentProfile, StudentProfileResponseDTO.class);
 
     }
 
 
-    public void CreateProfile(Long userId, StudentProfileDTO dto, MultipartFile resume, MultipartFile tenth, MultipartFile twelfth, MultipartFile lastsemester) {
+    public void CreateProfile(Long userId, StudentProfileRequestDTO dto, MultipartFile resume, MultipartFile tenth, MultipartFile twelfth, MultipartFile lastsemester) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -96,9 +97,11 @@ public class StudentService {
                () -> new RuntimeException("User not found")
        );
 
-      boolean isVerified =  profile.isVerified();
       StudentVerifiedDTO dto = new StudentVerifiedDTO();
-       dto.setVerified(isVerified);
+       dto.setVerified(profile.isVerified());
+       dto.setBranch(profile.getBranch());
+       dto.setFullName(profile.getFullName());
+       dto.setStudentEnrollmentNo(profile.getStudentEnrollmentNo());
        return dto;
     }
 }

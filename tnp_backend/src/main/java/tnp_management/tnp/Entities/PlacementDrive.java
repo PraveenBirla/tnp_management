@@ -40,7 +40,7 @@ public class PlacementDrive {
     private LocalDateTime driveDate;
     private String description;
 
-    @OneToMany(mappedBy = "placementDrive", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "placementDrive", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<DriveRegistration> registrations;
 
 }

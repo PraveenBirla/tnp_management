@@ -1,12 +1,15 @@
 package tnp_management.tnp.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tnp_management.tnp.Entities.StudentProfile;
-import tnp_management.tnp.dto.StudentListDTO;
+
 import tnp_management.tnp.projection.PlacementStatsProjection;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -16,14 +19,18 @@ public interface StudentProfileRepository  extends JpaRepository<StudentProfile 
 
     Optional<StudentProfile> findById(Long id);
 
-    @Query("SELECT sp FROM StudentProfile sp JOIN FETCH sp.user u")
-    List<StudentProfile> findAllStudentsCustom();
 
-    @Query("SELECT sp FROM StudentProfile sp JOIN FETCH sp.user u " +
-            "WHERE (:branch IS NULL OR sp.branch = :branch) " +
-            "AND (:year IS NULL OR sp.passoutYear = :year)")
-    List<StudentProfile> findStudentsByFilters(@Param("branch") String branch,
-                                               @Param("year") Integer year);
+
+    @Query("""
+    SELECT s FROM StudentProfile s
+    WHERE (:branch IS NULL OR s.branch = :branch)
+    AND (:year IS NULL OR s.passoutYear = :year)
+""")
+    Page<StudentProfile> findStudentsByFilters(
+            @Param("branch") String branch,
+            @Param("year") Integer year,
+            Pageable pageable
+    );
 
     @Query("""
 SELECT 

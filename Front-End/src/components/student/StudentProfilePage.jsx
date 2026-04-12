@@ -1,530 +1,397 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Save, Loader, FileText, Upload, CheckCircle, AlertCircle, Edit3, User, Phone, BookOpen, GraduationCap, Code } from "lucide-react";
-import { fetchWithAuth } from "../../api/fetchWithAuth";
-import StudentTopNavbar from "./StudentTopNavbar";
+ import { useState, useEffect } from "react";
+ import { useNavigate } from "react-router-dom";
+ import { Save, Loader, FileText, Upload, CheckCircle, AlertCircle, Edit3, User, Phone, BookOpen, GraduationCap, Code } from "lucide-react";
+ import { fetchWithAuth } from "../../api/fetchWithAuth";
+ import StudentTopNavbar from "./StudentTopNavbar";
 
-export default function StudentProfilePage() {
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [verificationChecked, setVerificationChecked] = useState(false);
+ export default function StudentProfilePage() {
+   const navigate = useNavigate();
+   const [profile, setProfile] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [saving, setSaving] = useState(false);
+   const [error, setError] = useState(null);
+   const [success, setSuccess] = useState(false);
+   const [isEditing, setIsEditing] = useState(false);
+   const [isVerified, setIsVerified] = useState(false);
+   const [verificationChecked, setVerificationChecked] = useState(false);
 
-  // 1. Unified Form State
-  const [formData, setFormData] = useState({
-    fullName: "",
-    cgpa: "",
-    studentEnrollmentNo: "",
-    branch: "",
-    passoutYear: new Date().getFullYear(),
-    skills: "",
-    phoneNumber: "",
-  });
+   const [formData, setFormData] = useState({
+     fullName: "",
+     cgpa: "",
+     studentEnrollmentNo: "",
+     branch: "",
+     passoutYear: new Date().getFullYear(),
+     skills: "",
+     phoneNumber: "",
+   });
 
-  // 2. File State
-  const [files, setFiles] = useState({
-    resume: null,
-    tenth: null,
-    twelfth: null,
-    lastsemester: null,
-  });
+   const [files, setFiles] = useState({
+     resume: null,
+     tenth: null,
+     twelfth: null,
+     lastsemester: null,
+   });
 
-  useEffect(() => {
-    checkVerificationStatus();
-  }, []);
+   useEffect(() => {
+     checkVerificationStatus();
+   }, []);
 
-  const checkVerificationStatus = async () => {
-    try {
-      setLoading(true);
+   const checkVerificationStatus = async () => {
+     try {
+       setLoading(true);
+       const response = await fetchWithAuth("/student/profile/verify");
 
-      const response = await fetchWithAuth("/student/profile/verify");
+       if (response.ok) {
+         const result = await response.json();
+         const isVerified = result?.data?.verified === true;
 
+         if (!isVerified) {
+           navigate("/student/profile-pending");
+           return;
+         }
 
-      if (response.ok) {
-        const result = await response.json();
+         setIsVerified(true);
+         setVerificationChecked(true);
+         await fetchProfile();
+       } else {
+         navigate("/student/create-profile");
+       }
+     } catch (err) {
+       navigate("/student/create-profile");
+     } finally {
+       setLoading(false);
+     }
+   };
 
-        const isVerified = result?.data?.verified === true;
+   const fetchProfile = async () => {
+     try {
+       const response = await fetchWithAuth("/student/get-profile");
 
-        console.log("Profile exists ✅");
+       if (!response.ok) {
+         setProfile(null);
+         setIsEditing(true);
+         return;
+       }
 
-        // 🔥 Profile exists → now check verification
-        if (!isVerified) {
-          navigate("/student/profile-pending");
-          return;
-        }
+       const result = await response.json();
+       if (result?.data) {
+         setProfile(result.data);
+         setFormData({
+           fullName: result.data.fullName || "",
+           cgpa: result.data.cgpa || "",
+           studentEnrollmentNo: result.data.studentEnrollmentNo || "",
+           branch: result.data.branch || "",
+           passoutYear: result.data.passoutYear || new Date().getFullYear(),
+           skills: result.data.skills || "",
+           phoneNumber: result.data.phoneNumber || "",
+         });
+         setIsEditing(false);
+       } else {
+         setIsEditing(true);
+       }
+     } catch (err) {
+       setError("Failed to load profile details.");
+     }
+   };
 
-        // ✅ Verified → allow access
-        setIsVerified(true);
-        setVerificationChecked(true);
+   const handleChange = (e) => {
+     const { name, value } = e.target;
+     setFormData((prev) => ({ ...prev, [name]: value }));
+   };
 
-        // Fetch full profile
-        await fetchProfile();
+   const handleFileChange = (e) => {
+     const { name, files: selectedFiles } = e.target;
+     if (selectedFiles.length > 0) {
+       setFiles((prev) => ({
+         ...prev,
+         [name]: selectedFiles[0],
+       }));
+     }
+   };
 
-      } else {
+   const handleSubmit = async (e) => {
+     e.preventDefault();
+     setSaving(true);
+     setError(null);
+     setSuccess(false);
 
-        console.log("Profile not created ❌");
-        navigate("/student/create-profile");
-      }
+     try {
+       if (!profile && !files.resume) {
+         setError("Resume is required");
+         setSaving(false);
+         return;
+       }
 
-    } catch (err) {
-      console.error("Verification error:", err);
-      navigate("/student/create-profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+       const dtoData = {
+         ...formData,
+         cgpa: Number(formData.cgpa),
+         passoutYear: Number(formData.passoutYear),
+       };
 
-  const fetchProfile = async () => {
-    try {
-      const response = await fetchWithAuth("/student/get-profile");
+       const formDataToSend = new FormData();
+       formDataToSend.append(
+         "data",
+         new Blob([JSON.stringify(dtoData)], {
+           type: "application/json",
+         })
+       );
 
-      if (!response.ok) {
-        setProfile(null);
-        setIsEditing(true); // Default to edit mode if no profile exists
-        return;
-      }
+       Object.entries(files).forEach(([key, file]) => {
+         if (file) {
+           formDataToSend.append(key === "lastsemester" ? "lastSemesterMarkSheet" : key, file);
+         }
+       });
 
-      const result = await response.json();
-      if (result?.data) {
-        setProfile(result.data);
-        // Sync form with fetched data
-        setFormData({
-          fullName: result.data.fullName || "",
-          cgpa: result.data.cgpa || "",
-          studentEnrollmentNo: result.data.studentEnrollmentNo || "",
-          branch: result.data.branch || "",
-          passoutYear: result.data.passoutYear || new Date().getFullYear(),
-          skills: result.data.skills || "",
-          phoneNumber: result.data.phoneNumber || "",
-        });
-        setIsEditing(false);
-      } else {
-        setIsEditing(true);
-      }
-    } catch (err) {
-      setError("Failed to load profile details.");
-    }
-  };
+       const response = await fetchWithAuth("/student/get-profile", {
+         method: profile ? "PUT" : "POST",
+         body: formDataToSend,
+       });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+       if (response.ok) {
+         setSuccess(true);
+         setTimeout(() => setSuccess(false), 3000);
+         await fetchProfile();
+         setIsEditing(false);
+         setFiles({
+           resume: null,
+           tenth: null,
+           twelfth: null,
+           lastsemester: null,
+         });
+       } else {
+         const errResult = await response.json();
+         setError(errResult.error?.message || "Failed to save profile.");
+       }
+     } catch (err) {
+       setError("Server error. Check your connection or file sizes.");
+     } finally {
+       setSaving(false);
+     }
+   };
 
-  const handleFileChange = (e) => {
-    const { name, files: selectedFiles } = e.target;
-    if (selectedFiles.length > 0) {
-      setFiles((prev) => ({
-        ...prev,
-        [name]: selectedFiles[0],
-      }));
-    }
-  };
+   if (loading || !verificationChecked) {
+     return (
+       <div className="min-h-screen bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] flex items-center justify-center">
+         <div className="text-center">
+           <Loader className="w-12 h-12 animate-spin text-[#d97706] mx-auto mb-4" />
+           <p className="text-[#5d4037] text-lg">Verifying your profile...</p>
+         </div>
+       </div>
+     );
+   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-    setSuccess(false);
+   return (
+     <div className="min-h-screen bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] p-8">
+       <div className="max-w-7xl mx-auto">
+         {/* Header */}
+         <div className="flex justify-center mb-8">
+           <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+         </div>
 
-    try {
-      // ✅ Validation (important)
-      if (!profile && !files.resume) {
-        setError("Resume is required");
-        setSaving(false);
-        return;
-      }
+         {/* Notifications */}
+         {success && (
+           <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg">
+             <p className="font-semibold">Success! Your profile has been saved.</p>
+           </div>
+         )}
 
-      const dtoData = {
-        ...formData,
-        cgpa: Number(formData.cgpa),
-        passoutYear: Number(formData.passoutYear),
-      };
+         {error && (
+           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+             {error}
+           </div>
+         )}
 
-      const formDataToSend = new FormData();
+         {isEditing ? (
+           /* Compact Edit Form */
+           <div className="bg-[#fffdf7] rounded-2xl border border-[#f1e6d3] shadow-sm p-6 max-w-2xl mx-auto">
+             <form onSubmit={handleSubmit} className="space-y-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                   <label className="block text-sm font-medium text-[#7c5e3c] mb-1">Full Name</label>
+                   <input className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" name="fullName" value={formData.fullName} onChange={handleChange} required />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-[#7c5e3c] mb-1">CGPA</label>
+                   <input className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" type="number" step="0.01" name="cgpa" value={formData.cgpa} onChange={handleChange} required />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-[#7c5e3c] mb-1">Enrollment No.</label>
+                   <input className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" name="studentEnrollmentNo" value={formData.studentEnrollmentNo} onChange={handleChange} required />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-[#7c5e3c] mb-1">Branch</label>
+                   <select className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" name="branch" value={formData.branch} onChange={handleChange} required>
+                      <option value="">All Branches</option>
+                      <option value="CS">Computer Science (CS)</option>
+                      <option value="EC">Electronics (EC)</option>
+                      <option value="AI">Artificial Intelligence (AI)</option>
+                      <option value="CE">Civil Engineering (CE)</option>
+                      <option value="ME">Mechanical (ME)</option>
+                      <option value="IT">Information Tech (IT)</option>
+                      <option value="BC">Block Chain</option>
+                   </select>
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-[#7c5e3c] mb-1">Passout Year</label>
+                   <input className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" type="number" name="passoutYear" value={formData.passoutYear} onChange={handleChange} required />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-[#7c5e3c] mb-1">Phone</label>
+                   <input className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} required />
+                 </div>
+               </div>
 
-      // ✅ JSON part
-      formDataToSend.append(
-        "data",
-        new Blob([JSON.stringify(dtoData)], {
-          type: "application/json",
-        })
-      );
+               <div>
+                 <label className="block text-sm font-medium text-[#7c5e3c] mb-1">Skills</label>
+                 <input className="w-full p-2.5 rounded-lg border border-[#f1e6d3] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d97706]" name="skills" value={formData.skills} onChange={handleChange} placeholder="Java, Spring Boot, MySQL" />
+               </div>
 
-      // ✅ FILES
-      Object.entries(files).forEach(([key, file]) => {
-        if (file) {
-          formDataToSend.append(key, file);
-        }
-      });
+               {/* Compact File Upload */}
+               <div>
+                 <h4 className="text-sm font-semibold text-[#d97706] mb-2">Documents</h4>
+                 <div className="grid grid-cols-2 gap-2 text-xs">
+                   {[
+                     { key: "resume", label: "Resume" },
+                     { key: "tenth", label: "10th" },
+                     { key: "twelfth", label: "12th" },
+                     { key: "lastsemester", label: "Last Sem" },
+                   ].map((fileItem) => (
+                     <label key={fileItem.key} className="flex items-center gap-1 p-2 border border-dashed border-[#f1e6d3] rounded cursor-pointer hover:bg-[#fff7ed] text-[#7c5e3c]">
+                       📄 {files[fileItem.key]?.name ? files[fileItem.key].name.slice(0,15)+'...' : fileItem.label}
+                       <input type="file" name={fileItem.key} onChange={handleFileChange} className="hidden" accept=".pdf" />
+                     </label>
+                   ))}
+                 </div>
+               </div>
 
-      const response = await fetchWithAuth("/student/get-profile", {
-        method: profile ? "PUT" : "POST",
-        body: formDataToSend,
-      });
-       console.log("PROFILE RESPONSE:",  response);
-      if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-        await fetchProfile();
-        setIsEditing(false);
+               <div className="flex gap-3 pt-2 border-t border-[#f1e6d3]">
+                 <button type="submit" disabled={saving} className="flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-1 text-sm bg-[#d97706] hover:bg-[#b45309] text-white disabled:opacity-50">
+                   {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} Save
+                 </button>
+                 <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 border border-[#f1e6d3] text-[#7c5e3c] text-sm rounded-lg hover:bg-[#fff7ed]">
+                   Cancel
+                 </button>
+               </div>
+             </form>
+           </div>
+         ) : (
+           /* COMPACT VIEW - Same size as drives cards */
+           <div className="bg-[#fffdf7] rounded-2xl border border-[#f1e6d3] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 max-w-sm mx-auto">
+             {/* Compact Header */}
+             <div className="p-4 border-b border-[#f1e6d3]">
+               <div className="flex items-center gap-3">
+                 <div className="w-12 h-12 bg-[#d97706]/20 rounded-full flex items-center justify-center">
+                   <User size={24} className="text-[#d97706]" />
+                 </div>
+                 <div>
+                   <h3 className="text-lg font-semibold text-[#d97706]">{profile?.fullName}</h3>
+                   <p className="text-sm text-[#7c5e3c]">{profile?.branch} • {profile?.passoutYear}</p>
+                 </div>
+               </div>
+             </div>
 
-        // reset files
-        setFiles({
-          resume: null,
-          tenth: null,
-          twelfth: null,
-          lastsemester: null,
-        });
-      } else {
-        const errResult = await response.json();
-        setError(errResult.error?.message || "Failed to save profile.");
-      }
-    } catch (err) {
-      setError("Server error. Check your connection or file sizes.");
-    } finally {
-      setSaving(false);
-    }
-  };
+             {/* Compact Content */}
+             <div className="p-5 space-y-3">
+               {/* CGPA & Enrollment */}
+               <div className="grid grid-cols-2 gap-2">
+                 <div className="bg-[#fff7ed] p-2.5 rounded-lg border border-[#f3e2c7] text-xs">
+                   <p className="text-[#7c5e3c]">CGPA</p>
+                   <p className="font-semibold text-[#451a03] text-lg">{profile?.cgpa}</p>
+                 </div>
+                 <div className="bg-[#fff7ed] p-2.5 rounded-lg border border-[#f3e2c7] text-xs">
+                   <p className="text-[#7c5e3c]">Enrollment</p>
+                   <p className="font-semibold text-[#451a03]">{profile?.studentEnrollmentNo}</p>
+                 </div>
+               </div>
 
-  if (loading || !verificationChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFFFF0] to-[#f5f5dc] flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 animate-spin text-[#d97706] mx-auto mb-4" />
-          <p className="text-[#5d4037] text-lg">Verifying your profile...</p>
-        </div>
-      </div>
-    );
-  }
+               {/* Phone */}
+               <div className="bg-[#fff7ed] p-3 rounded-lg border border-[#f3e2c7]">
+                 <p className="text-xs text-[#7c5e3c]">Phone</p>
+                 <p className="font-semibold text-[#451a03] text-sm">{profile?.phoneNumber}</p>
+               </div>
 
-  // Only show navbar if profile is verified
-  return (
+               {/* Skills */}
+               {profile?.skills && (
+                 <div>
+                   <p className="text-xs text-[#7c5e3c] mb-1">Skills</p>
+                   <div className="flex flex-wrap gap-1">
+                     {profile.skills.split(",").map((skill, i) => (
+                       <span key={i} className="text-xs bg-[#fff7ed] px-2 py-1 rounded text-[#d97706] border border-[#f3e2c7]">
+                         {skill.trim()}
+                       </span>
+                     ))}
+                   </div>
+                 </div>
+               )}
 
+               {/* Documents - Compact */}
+               {/* Professional PDF Grid - 2 PER ROW */}
+               <div>
+                 <p className="text-xs font-semibold text-[#d97706] mb-3 flex items-center gap-1">
+                   <FileText size={14} className="text-[#d97706]" />
+                   Documents
+                 </p>
+                 <div className="grid grid-cols-2 gap-2">
+                   {[
+                     { label: "Resume", key: "resumeUrl", icon: "📄" },
+                     { label: "10th", key: "tenthMarksheetUrl", icon: "📜" },
+                     { label: "12th", key: "twelfthMarksheetUrl", icon: "📜" },
+                     { label: "Last Sem", key: "lastSemesterMarkSheetUrl", icon: "📊" },
+                   ].map((doc) => {
+                     if (profile?.[doc.key]) {
+                       return (
+                         <a
+                           key={doc.key}
+                           href={profile[doc.key]}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="group relative bg-gradient-to-r from-[#d97706]/5 to-[#b45309]/5 border border-[#d97706]/30 rounded-lg p-3 text-center hover:from-[#d97706]/10 hover:to-[#b45309]/10 hover:border-[#d97706]/50 hover:shadow-md transition-all duration-200 hover:-translate-y-1 flex flex-col items-center gap-1"
+                         >
+                           {/* Icon */}
+                           <div className="w-10 h-10 bg-gradient-to-br from-[#d97706]/20 to-[#b45309]/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                             <span className="text-lg">{doc.icon}</span>
+                           </div>
 
+                           {/* Label */}
+                           <p className="text-xs font-semibold text-[#451a03] group-hover:text-[#d97706] transition-colors">
+                             {doc.label}
+                           </p>
 
-      <div className="min-h-screen bg-gray-50">
-        {/* Header Section */}
-        <div className="bg-white border-b border-gray-200 px-6 py-8">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Student Profile</h1>
-              <p className="text-gray-600 mt-2">
-                Keep your academic records up to date for placements.
-              </p>
-            </div>
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition shadow-md"
-              >
-                <Edit3 size={18} />
-                Edit Profile
-              </button>
-            )}
-          </div>
-        </div>
+                           {/* Download indicator */}
+                           <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500/90 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white group-hover:bg-green-600 transition-all">
+                             ✓
+                           </div>
+                         </a>
+                       );
+                     } else {
+                       return (
+                         <div
+                           key={doc.key}
+                           className="bg-gray-100/50 border-2 border-dashed border-gray-300 rounded-lg p-3 text-center transition-all hover:bg-gray-100 cursor-not-allowed opacity-60"
+                         >
+                           <span className="text-lg mb-1 block">{doc.icon}</span>
+                           <p className="text-xs text-gray-500 font-medium">{doc.label}</p>
+                         </div>
+                       );
+                     }
+                   })}
+                 </div>
+               </div>
+             </div>
 
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          {/* Notifications */}
-          {success && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
-              <CheckCircle className="text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-green-800 font-semibold">Success!</p>
-                <p className="text-green-700">Your profile has been saved.</p>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-red-800 font-semibold">Error</p>
-                <p className="text-red-700">{error}</p>
-              </div>
-            </div>
-          )}
-
-          {isEditing ? (
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow p-8">
-              {/* Input Groups */}
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CGPA
-                    </label>
-                    <input
-                      type="number"
-                      name="cgpa"
-                      step="0.01"
-                      value={formData.cgpa}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Enrollment No.
-                    </label>
-                    <input
-                      type="text"
-                      name="studentEnrollmentNo"
-                      value={formData.studentEnrollmentNo}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Branch
-                    </label>
-                    <select
-                      name="branch"
-                      value={formData.branch}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="">Select Branch</option>
-                      <option value="Computer Science">Computer Science</option>
-                      <option value="Information Technology">
-                        Information Technology
-                      </option>
-                      <option value="Mechanical">Mechanical</option>
-                      <option value="Electrical">Electrical</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Passout Year
-                    </label>
-                    <input
-                      type="number"
-                      name="passoutYear"
-                      value={formData.passoutYear}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Skills
-                  </label>
-                  <input
-                    type="text"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-
-                {/* Document Upload Grid */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Upload Documents
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.keys(files).map((fileKey) => (
-                      <div key={fileKey}>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {fileKey.replace("lastsemester", "Last Semester Marksheet")}
-                        </label>
-                        <label className="flex items-center justify-between px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                          <span className="text-sm text-gray-600">
-                            {files[fileKey] ? files[fileKey].name : "Select File"}
-                          </span>
-                          <Upload size={18} className="text-indigo-600" />
-                          <input
-                            type="file"
-                            name={fileKey}
-                            onChange={handleFileChange}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="mt-8 flex gap-4">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-4 font-bold rounded-2xl hover:bg-indigo-700 transition-all disabled:opacity-50"
-                >
-                  {saving ? (
-                    <>
-                      <Loader size={20} className="animate-spin" />
-                      Uploading to Cloud...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={20} />
-                      Finalize Profile
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-8 py-4 border-2 border-gray-200 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            /* View Mode: Profile Card */
-            <div className="bg-white rounded-2xl shadow overflow-hidden">
-              {/* Profile Header */}
-              <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 px-8 py-12">
-                <div className="flex items-start gap-6">
-                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
-                    <User size={48} className="text-indigo-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-white">{profile?.fullName}</h2>
-                    <p className="text-indigo-100 text-lg">{profile?.branch}</p>
-                    <p className="text-indigo-200">Batch {profile?.passoutYear}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Profile Details */}
-              <div className="p-8 space-y-8">
-                {/* Academic Details */}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <GraduationCap size={24} className="text-indigo-600" />
-                    Academic Details
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 rounded-lg p-6">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-600">Enrollment No.</p>
-                      <p className="text-lg text-gray-900">{profile?.studentEnrollmentNo}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-600">Current CGPA</p>
-                      <p className="text-lg text-gray-900">{profile?.cgpa}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Details */}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Phone size={24} className="text-indigo-600" />
-                    Contact Information
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <p className="text-sm font-semibold text-gray-600">Phone Number</p>
-                    <p className="text-lg text-gray-900">{profile?.phoneNumber}</p>
-                  </div>
-                </div>
-
-                {/* Skills */}
-                {profile?.skills && (
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <Code size={24} className="text-indigo-600" />
-                      Skills
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.skills
-                        .split(",")
-                        .map((skill) => (
-                          <span
-                            key={skill.trim()}
-                            className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium"
-                          >
-                            {skill.trim()}
-                          </span>
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Files */}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <FileText size={24} className="text-indigo-600" />
-                    Documents
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      { label: "Resume", key: "resumeUrl" },
-                      { label: "10th Marksheet", key: "tentMarksheetUrl" },
-                      { label: "12th Marksheet", key: "twelfthMarksheetUrl" },
-                      { label: "Semester Results", key: "lastSemesterMarkSheetUrl" },
-                    ].map((doc) =>
-                      profile?.[doc.key] ? (
-                        <a
-                          key={doc.key}
-                          href={profile[doc.key]}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 hover:bg-indigo-100 transition"
-                        >
-                          <p className="text-sm font-semibold text-indigo-900">{doc.label}</p>
-                          <p className="text-xs text-indigo-600 mt-1">Download</p>
-                        </a>
-                      ) : null
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-  );
-}
+             {/* Edit Button */}
+             <div className="border-t border-[#f1e6d3] p-4">
+               <button
+                 onClick={() => setIsEditing(true)}
+                 className="w-full py-2 rounded-lg font-medium flex items-center justify-center gap-2 text-sm bg-[#d97706] hover:bg-[#b45309] text-white transition"
+               >
+                 <Edit3 size={16} />
+                 Edit Profile
+               </button>
+             </div>
+           </div>
+         )}
+       </div>
+     </div>
+   );
+ }

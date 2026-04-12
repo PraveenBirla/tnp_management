@@ -7,7 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tnp_management.tnp.Entities.User;
-import tnp_management.tnp.dto.StudentProfileDTO;
+import tnp_management.tnp.dto.StudentProfileRequestDTO;
+import tnp_management.tnp.dto.StudentProfileResponseDTO;
 import tnp_management.tnp.dto.StudentVerifiedDTO;
 import tnp_management.tnp.services.StudentService;
 
@@ -25,7 +26,7 @@ public class StudentController {
     @PostMapping(value = "/create-profile" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Void> createProfile(Authentication authentication ,
-                                              @RequestPart("data") StudentProfileDTO dto,
+                                              @RequestPart("data") StudentProfileRequestDTO dto,
                                               @RequestPart("resume")MultipartFile resume,
                                               @RequestPart("tenth") MultipartFile tenth,
                                               @RequestPart("twelfth") MultipartFile twelfth,
@@ -39,21 +40,21 @@ public class StudentController {
 
     @PutMapping(value = "/update-profile")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<StudentProfileDTO> updateMyProfile(Authentication authentication ,
-                                                             @RequestBody StudentProfileDTO studentProfileDTO){
+    public ResponseEntity<StudentProfileRequestDTO> updateMyProfile(Authentication authentication ,
+                                                                    @RequestBody StudentProfileRequestDTO studentProfileRequestDTO){
         User user = (User) authentication.getPrincipal();
          Long userId = user.getId();
 
-        StudentProfileDTO updated = studentService.updateProfile(userId , studentProfileDTO);
+        StudentProfileRequestDTO updated = studentService.updateProfile(userId , studentProfileRequestDTO);
         return ResponseEntity.ok(updated);
     }
 
    @GetMapping("/get-profile")
    @PreAuthorize("hasRole('STUDENT')")
-    public  ResponseEntity<StudentProfileDTO> myProfile(Authentication authentication){
+    public  ResponseEntity<StudentProfileResponseDTO> myProfile(Authentication authentication){
         User user =  (User) authentication.getPrincipal();
         Long userId = user.getId();
-        StudentProfileDTO dto = studentService.getProfile(userId);
+        StudentProfileResponseDTO dto = studentService.getProfile(userId);
         return  ResponseEntity.ok(dto);
    }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, AlertCircle, LogOut } from "lucide-react";
-
+import {fetchWithAuth} from "../../api/fetchWithAuth";
 export default function StudentProfilePending() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -17,14 +17,10 @@ export default function StudentProfilePending() {
   const checkVerificationStatus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        "http://localhost:8080/api/student/profile/verify",
+      const response = await fetchWithAuth(
+        '/student/profile/verify',
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
           credentials: "include",
         }
       );
