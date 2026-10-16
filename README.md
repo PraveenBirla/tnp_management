@@ -153,8 +153,8 @@ The application uses **JWT Authentication** and **Spring Security**.
 ## 1️⃣ Clone Repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_LINK
-cd TNP-Management-System
+git clone https://github.com/PraveenBirla/tnp_management.git
+cd tnp_management
 ```
 
 ---
